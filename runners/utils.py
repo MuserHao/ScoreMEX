@@ -36,11 +36,6 @@ def load_score(config, states):
         ema_helper.ema(score)
     return score
 
-def load_sigmas(config):
-    sigmas_th = get_sigmas(config)
-    sigmas = sigmas_th.cpu().numpy()
-    return sigmas
-
 def get_dataset_and_loader(config, args):
     dataset, _ = get_dataset(args, config)
     dataloader = DataLoader(dataset, batch_size=config.sampling.batch_size, shuffle=True, num_workers=4)
