@@ -31,7 +31,7 @@ class EXTRunner():
         os.makedirs(args.log_sample_path, exist_ok=True)
 
     def train(self):
-      print("Training is not conducted under extrapolation code.")
+      print("Training is not implemented under extrapolation code.")
       return 0
 
     def test(self):
