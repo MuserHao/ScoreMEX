@@ -34,8 +34,6 @@ def load_score(config, states):
         ema_helper.register(score)
         ema_helper.load_state_dict(states[-1])
         ema_helper.ema(score)
-
-    score.eval()
     return score
 
 def load_sigmas(config):
