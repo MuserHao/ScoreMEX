@@ -30,17 +30,17 @@ class EXTRunner():
         os.makedirs(args.log_sample_path, exist_ok=True)
 
     def train(self):
-      print("Training is not implemented under extrapolation code.")
-      return 0
-    
+        print("Training is not implemented under extrapolation code.")
+        return 0
+
     def sample(self):
         states = load_states(self.config, self.args)
         score = load_score(self.config, states)
-        
+
         sigmas_th = get_sigmas(config)
         sigmas = sigmas_th.cpu().numpy()
         dataset, dataloader = get_dataset_and_loader(self.config, self.args)
-        
+
         score.eval()
         if not self.config.sampling.fid:
             if self.config.sampling.inpainting:
@@ -65,14 +65,16 @@ class EXTRunner():
                                                                                                       1:])
                 save_image(refer_images, os.path.join(self.args.image_folder, 'refer_image.png'), nrow=width)
                 if not self.config.sampling.final_only:
-                    save_sampling_results(self.config, self.args, all_samples, self.config.sampling.batch_size, int(np.sqrt(self.config.sampling.batch_size)))
+                    save_sampling_results(self.config, self.args, all_samples, self.config.sampling.batch_size,
+                                          int(np.sqrt(self.config.sampling.batch_size)))
                 else:
-                    save_sampling_results(self.config, self.args, [all_samples[-1]], self.config.sampling.batch_size, int(np.sqrt(self.config.sampling.batch_size)))
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], self.config.sampling.batch_size,
+                                          int(np.sqrt(self.config.sampling.batch_size)))
 
             elif self.config.sampling.interpolation:
                 init_samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
-                                              self.config.data.image_size, self.config.data.image_size,
-                                              device=self.config.device)
+                                          self.config.data.image_size, self.config.data.image_size,
+                                          device=self.config.device)
                 init_samples = data_transform(self.config, init_samples)
 
                 all_samples = anneal_Langevin_dynamics_interpolation(init_samples, score, sigmas,
@@ -81,15 +83,17 @@ class EXTRunner():
                                                                      self.config.sampling.step_lr, verbose=True,
                                                                      final_only=self.config.sampling.final_only)
                 if not self.config.sampling.final_only:
-                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0], self.config.sampling.n_interpolations)
+                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0],
+                                          self.config.sampling.n_interpolations)
                 else:
-                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0], self.config.sampling.n_interpolations)
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0],
+                                          self.config.sampling.n_interpolations)
             else:
-                    
+
                 init_samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
-                                              self.config.data.image_size, self.config.data.image_size,
-                                              device=self.config.device)
-                    
+                                          self.config.data.image_size, self.config.data.image_size,
+                                          device=self.config.device)
+
                 init_samples = data_transform(self.config, init_samples)
 
                 all_samples = anneal_Langevin_dynamics(init_samples, score, sigmas,
@@ -99,10 +103,12 @@ class EXTRunner():
                                                        denoise=self.config.sampling.denoise)
 
                 if not self.config.sampling.final_only:
-                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0], int(np.sqrt(self.config.sampling.batch_size)))
+                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0],
+                                          int(np.sqrt(self.config.sampling.batch_size)))
                 else:
-                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0], int(np.sqrt(self.config.sampling.batch_size)))
-            
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0],
+                                          int(np.sqrt(self.config.sampling.batch_size)))
+
         else:
             total_n_samples = self.config.sampling.num_samples4fid
             n_rounds = total_n_samples // self.config.sampling.batch_size
@@ -110,8 +116,8 @@ class EXTRunner():
             img_id = 0
             for _ in tqdm.tqdm(range(n_rounds), desc='Generating image samples for FID/inception score evaluation'):
                 samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
-                                         self.config.data.image_size,
-                                         self.config.data.image_size, device=self.config.device)
+                                     self.config.data.image_size,
+                                     self.config.data.image_size, device=self.config.device)
                 samples = data_transform(self.config, samples)
 
                 all_samples = anneal_Langevin_dynamics(samples, score, sigmas,
@@ -125,8 +131,6 @@ class EXTRunner():
 
                     save_image(img, os.path.join(self.args.image_folder, 'image_{}.png'.format(img_id)))
                     img_id += 1
-          
-          
 
     def test(self):
         score = get_model(self.config)
