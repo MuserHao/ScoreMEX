@@ -43,6 +43,31 @@ class EXTRunner():
         
         score.eval()
         if not self.config.sampling.fid:
+            
+        else:
+            total_n_samples = self.config.sampling.num_samples4fid
+            n_rounds = total_n_samples // self.config.sampling.batch_size
+
+            img_id = 0
+            for _ in tqdm.tqdm(range(n_rounds), desc='Generating image samples for FID/inception score evaluation'):
+                samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
+                                         self.config.data.image_size,
+                                         self.config.data.image_size, device=self.config.device)
+                samples = data_transform(self.config, samples)
+
+                all_samples = anneal_Langevin_dynamics(samples, score, sigmas,
+                                                       self.config.sampling.n_steps_each,
+                                                       self.config.sampling.step_lr, verbose=False,
+                                                       denoise=self.config.sampling.denoise)
+
+                samples = all_samples[-1]
+                for img in samples:
+                    img = inverse_data_transform(self.config, img)
+
+                    save_image(img, os.path.join(self.args.image_folder, 'image_{}.png'.format(img_id)))
+                    img_id += 1
+          
+          
 
     def test(self):
         score = get_model(self.config)
