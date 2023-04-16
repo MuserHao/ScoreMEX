@@ -1,3 +1,4 @@
+import tqdm
 import torch
 from datasets import get_dataset
 from models.ema import EMAHelper
@@ -44,3 +45,13 @@ def get_dataset_and_loader(config, args):
     dataset, _ = get_dataset(args, config)
     dataloader = DataLoader(dataset, batch_size=config.sampling.batch_size, shuffle=True, num_workers=4)
     return dataset, dataloader
+
+def save_sampling_results(config, args, all_samples, batch_size, grid_size):
+    for i, sample in tqdm.tqdm(enumerate(all_samples), total=len(all_samples), desc="saving image samples"):
+        sample = sample.view(batch_size, config.data.channels, config.data.image_size, config.data.image_size)
+        sample = inverse_data_transform(config, sample)
+        image_grid = make_grid(sample, nrow=grid_size)
+        save_image(image_grid, os.path.join(args.image_folder, 'image_grid_{}.png'.format(i)))
+        torch.save(sample, os.path.join(args.image_folder, 'samples_{}.pth'.format(i)))
+
+    
