@@ -32,6 +32,17 @@ class EXTRunner():
     def train(self):
       print("Training is not implemented under extrapolation code.")
       return 0
+    
+    def sample(self):
+        states = load_states(self.config, self.args)
+        score = load_score(self.config, states)
+        
+        sigmas_th = get_sigmas(config)
+        sigmas = sigmas_th.cpu().numpy()
+        dataset, dataloader = get_dataset_and_loader(self.config, self.args)
+        
+        score.eval()
+        if not self.config.sampling.fid:
 
     def test(self):
         score = get_model(self.config)
