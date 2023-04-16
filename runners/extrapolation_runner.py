@@ -18,17 +18,10 @@ from models import (anneal_Langevin_dynamics,
                     anneal_Langevin_dynamics_interpolation)
 from models import get_sigmas
 from models.ema import EMAHelper
+from utils import *
 
 __all__ = ['EXTRunner']
 
-#
-def get_model(config):
-    if config.data.dataset == 'CIFAR10' or config.data.dataset == 'CELEBA':
-        return NCSNv2(config).to(config.device)
-    elif config.data.dataset == "FFHQ":
-        return NCSNv2Deepest(config).to(config.device)
-    elif config.data.dataset == 'LSUN':
-        return NCSNv2Deeper(config).to(config.device)
 
 class EXTRunner():
     def __init__(self, args, config):
