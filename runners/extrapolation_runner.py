@@ -43,6 +43,65 @@ class EXTRunner():
         
         score.eval()
         if not self.config.sampling.fid:
+            if self.config.sampling.inpainting:
+                data_iter = iter(dataloader)
+                refer_images, _ = next(data_iter)
+                refer_images = refer_images.to(self.config.device)
+                width = int(np.sqrt(self.config.sampling.batch_size))
+                init_samples = torch.rand(width, width, self.config.data.channels,
+                                          self.config.data.image_size,
+                                          self.config.data.image_size,
+                                          device=self.config.device)
+                init_samples = data_transform(self.config, init_samples)
+                all_samples = anneal_Langevin_dynamics_inpainting(init_samples, refer_images[:width, ...], score,
+                                                                  sigmas,
+                                                                  self.config.data.image_size,
+                                                                  self.config.sampling.n_steps_each,
+                                                                  self.config.sampling.step_lr)
+
+                torch.save(refer_images[:width, ...], os.path.join(self.args.image_folder, 'refer_image.pth'))
+                refer_images = refer_images[:width, None, ...].expand(-1, width, -1, -1, -1).reshape(-1,
+                                                                                                     *refer_images.shape[
+                                                                                                      1:])
+                save_image(refer_images, os.path.join(self.args.image_folder, 'refer_image.png'), nrow=width)
+                if not self.config.sampling.final_only:
+                    save_sampling_results(self.config, self.args, all_samples, self.config.sampling.batch_size, int(np.sqrt(self.config.sampling.batch_size)))
+                else:
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], self.config.sampling.batch_size, int(np.sqrt(self.config.sampling.batch_size)))
+
+            elif self.config.sampling.interpolation:
+                init_samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
+                                              self.config.data.image_size, self.config.data.image_size,
+                                              device=self.config.device)
+                init_samples = data_transform(self.config, init_samples)
+
+                all_samples = anneal_Langevin_dynamics_interpolation(init_samples, score, sigmas,
+                                                                     self.config.sampling.n_interpolations,
+                                                                     self.config.sampling.n_steps_each,
+                                                                     self.config.sampling.step_lr, verbose=True,
+                                                                     final_only=self.config.sampling.final_only)
+                if not self.config.sampling.final_only:
+                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0], self.config.sampling.n_interpolations)
+                else:
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0], self.config.sampling.n_interpolations)
+            else:
+                    
+                init_samples = torch.rand(self.config.sampling.batch_size, self.config.data.channels,
+                                              self.config.data.image_size, self.config.data.image_size,
+                                              device=self.config.device)
+                    
+                init_samples = data_transform(self.config, init_samples)
+
+                all_samples = anneal_Langevin_dynamics(init_samples, score, sigmas,
+                                                       self.config.sampling.n_steps_each,
+                                                       self.config.sampling.step_lr, verbose=True,
+                                                       final_only=self.config.sampling.final_only,
+                                                       denoise=self.config.sampling.denoise)
+
+                if not self.config.sampling.final_only:
+                    save_sampling_results(self.config, self.args, all_samples, all_samples[-1].shape[0], int(np.sqrt(self.config.sampling.batch_size)))
+                else:
+                    save_sampling_results(self.config, self.args, [all_samples[-1]], all_samples[-1].shape[0], int(np.sqrt(self.config.sampling.batch_size)))
             
         else:
             total_n_samples = self.config.sampling.num_samples4fid
