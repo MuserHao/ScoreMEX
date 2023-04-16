@@ -21,7 +21,7 @@ from models.ema import EMAHelper
 
 __all__ = ['EXTRunner']
 
-
+#
 def get_model(config):
     if config.data.dataset == 'CIFAR10' or config.data.dataset == 'CELEBA':
         return NCSNv2(config).to(config.device)
