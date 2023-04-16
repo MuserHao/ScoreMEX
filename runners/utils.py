@@ -4,6 +4,8 @@ from models.ema import EMAHelper
 from models import get_sigmas
 from torch.utils.data import DataLoader
 from models.ncsnv2 import NCSNv2Deeper, NCSNv2, NCSNv2Deepest
+from models.ncsn import NCSN, NCSNdeeper
+
 
 
 def get_model(config):
