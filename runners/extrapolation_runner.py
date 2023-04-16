@@ -37,7 +37,7 @@ class EXTRunner():
         states = load_states(self.config, self.args)
         score = load_score(self.config, states)
 
-        sigmas_th = get_sigmas(config)
+        sigmas_th = get_sigmas(self.config)
         sigmas = sigmas_th.cpu().numpy()
         dataset, dataloader = get_dataset_and_loader(self.config, self.args)
 
