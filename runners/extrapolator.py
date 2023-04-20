@@ -17,12 +17,14 @@ class Extrapolator:
         self.model = model
         self.data_shape = data_shape
         self.x_mod = x_mod
-        self.sigmas = sigmas
+        self.sigmas = []
         self.labels = []
         for c, sigma in enumerate(sigmas):
             labels = torch.ones(self.data_shape[0], device=x_mod.device) * c
             labels = labels.long()
+            sigmas = torch.ones(self.data_shape, device=x_mod.device) * sigma
             self.labels += [labels]
+            self.sigmas += [sigmas]
         self.x = None
         self.y = None
         
@@ -35,8 +37,11 @@ class Extrapolator:
                                    Should take two arguments: data_shape and sigmas.
                                    Should return two arrays, x and y.
         """
-        #TODO
-        self.x, self.y = scorenet(x_mod, labels)
+        self.x = np.array([torch.flatten(x).numpy() for x in self.sigmas])
+        self.y = []
+        for labels in self.labels:
+             self.y += [scorenet(self.x_mod, labels)]
+        self.y = np.array([torch.flatten(y).numpy() for y in self.y])
         
     def train_model(self):
         """
