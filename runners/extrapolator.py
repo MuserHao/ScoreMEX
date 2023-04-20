@@ -40,7 +40,9 @@ class Extrapolator:
         self.x = np.array([torch.flatten(x).numpy() for x in self.sigmas])
         self.y = []
         for labels in self.labels:
-             self.y += [scorenet(self.x_mod, labels)]
+            score = scorenet(self.x_mod, labels)
+            # might need to standardize score to fit the model better?
+            self.y += [score]
         self.y = np.array([torch.flatten(y).numpy() for y in self.y])
         
     def train_model(self):
