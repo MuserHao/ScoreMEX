@@ -131,6 +131,8 @@ class EXTRunner():
 
                     save_image(img, os.path.join(self.args.image_folder, 'image_{}.png'.format(img_id)))
                     img_id += 1
+                    
+                    
     #TODO: code not changed yet
     def test(self):
         score = get_model(self.config)
