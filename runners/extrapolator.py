@@ -78,17 +78,17 @@ class Extrapolator:
 def extrapolated_Langevin_dynamics(x_mod, scorenet, extrapolator, sigmas, n_steps=200, step_size=0.000008,
                              final_only=False, verbose=False, denoise=True):
     images = []
-    for s in range(n_steps_each):
-    grad = scorenet(x_mod, labels)
+        for s in range(n_steps):
+        grad = scorenet(x_mod, labels)
 
-    noise = torch.randn_like(x_mod)
-    grad_norm = torch.norm(grad.view(grad.shape[0], -1), dim=-1).mean()
-    noise_norm = torch.norm(noise.view(noise.shape[0], -1), dim=-1).mean()
-    x_mod = x_mod + step_size * grad + noise * np.sqrt(step_size * 2)
+        noise = torch.randn_like(x_mod)
+        grad_norm = torch.norm(grad.view(grad.shape[0], -1), dim=-1).mean()
+        noise_norm = torch.norm(noise.view(noise.shape[0], -1), dim=-1).mean()
+        x_mod = x_mod + step_size * grad + noise * np.sqrt(step_size * 2)
 
-    image_norm = torch.norm(x_mod.view(x_mod.shape[0], -1), dim=-1).mean()
-    snr = np.sqrt(step_size / 2.) * grad_norm / noise_norm
-    grad_mean_norm = torch.norm(grad.mean(dim=0).view(-1)) ** 2 * sigma ** 2
+        image_norm = torch.norm(x_mod.view(x_mod.shape[0], -1), dim=-1).mean()
+        snr = np.sqrt(step_size / 2.) * grad_norm / noise_norm
+        grad_mean_norm = torch.norm(grad.mean(dim=0).view(-1)) ** 2 * sigma ** 2
 
         if not final_only:
             images.append(x_mod.to('cpu'))
