@@ -131,7 +131,7 @@ class EXTRunner():
 
                     save_image(img, os.path.join(self.args.image_folder, 'image_{}.png'.format(img_id)))
                     img_id += 1
-
+    #TODO: code not changed yet
     def test(self):
         score = get_model(self.config)
         score = torch.nn.DataParallel(score)
@@ -183,7 +183,7 @@ class EXTRunner():
             logging.info("ckpt: {}, average test loss: {}".format(
                 ckpt, mean_loss
             ))
-
+    #TODO: code not changed yet
     def fast_fid(self):
         ### Test the fids of ensembled checkpoints.
         ### Shouldn't be used for models with ema
@@ -249,7 +249,7 @@ class EXTRunner():
 
         with open(os.path.join(self.args.image_folder, 'fids.pickle'), 'wb') as handle:
             pickle.dump(fids, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+    #TODO: code not changed yet
     def fast_ensemble_fid(self):
         from evaluation.fid_score import get_fid, get_fid_stats_path
         import pickle
