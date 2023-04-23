@@ -24,6 +24,7 @@ def parse_args_and_config():
                                                                'Will be the name of the log folder.')
     parser.add_argument('--comment', type=str, default='', help='A string for experiment comment')
     parser.add_argument('--verbose', type=str, default='info', help='Verbose level: info | debug | warning | critical')
+    parser.add_argument('--extrapolation', action='store_true', default=False, help='Whether to use extrapolation.')
     parser.add_argument('--test', action='store_true', help='Whether to test the model')
     parser.add_argument('--sample', action='store_true', help='Whether to produce samples from the model')
     parser.add_argument('--fast_fid', action='store_true', help='Whether to do fast fid test')
@@ -177,7 +178,10 @@ def main():
     print("<" * 80)
 
     try:
-        runner = NCSNRunner(args, config)
+        if args.extrapolation:
+            runner = EXTRunner(args, config)
+        else:
+            runner = NCSNRunner(args, config)
         if args.test:
             runner.test()
         elif args.sample:
