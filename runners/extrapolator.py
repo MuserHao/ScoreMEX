@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
-class Extrapolator:
+class RegressionExtrapolator:
     def __init__(self, model, data_shape, x_mod, sigmas):
         """
         Initialize an extrapolator object with a regression model, data shape, and sigmas.
