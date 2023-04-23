@@ -18,6 +18,7 @@ from models import (anneal_Langevin_dynamics,
 from models import get_sigmas
 from models.ema import EMAHelper
 from utils import *
+from extrapolator import Extrapolator, extrapolated_Langevin_dynamics
 
 __all__ = ['EXTRunner']
 
