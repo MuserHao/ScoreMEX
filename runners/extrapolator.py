@@ -10,7 +10,15 @@ class Extrapolator(ABC):
     def __init__(self, data_shape, x_mod, sigmas):
         self.data_shape = data_shape
         self.x_mod = x_mod
-        self.sigmas = sigmas
+        self.sigmas = []
+        self.labels = []
+        for c, sigma in enumerate(sigmas):
+            labels = torch.ones(self.data_shape[0], device=x_mod.device) * c
+            labels = labels.long()
+            sigmas = torch.ones(self.data_shape, device=x_mod.device) * sigma
+            self.labels += [labels]
+            self.sigmas += [sigmas]
+        
         self.x = None
         self.y = None
         
@@ -94,14 +102,6 @@ class RegressionExtrapolator(Extrapolator):
         """
         super().__init__(data_shape, x_mod, sigmas)
         self.model = model
-        self.sigmas = []
-        self.labels = []
-        for c, sigma in enumerate(sigmas):
-            labels = torch.ones(self.data_shape[0], device=x_mod.device) * c
-            labels = labels.long()
-            sigmas = torch.ones(self.data_shape, device=x_mod.device) * sigma
-            self.labels += [labels]
-            self.sigmas += [sigmas]
         self.x = None
         self.y = None
         
@@ -146,7 +146,11 @@ class RegressionExtrapolator(Extrapolator):
         """
         if self.x is None or self.y is None:
             raise ValueError("Training data not generated")
-        return self.model.predict(x_pred.reshape(-1, 1))
+        
+        extrapolation = self.model.predict(x_pred.reshape(-1, 1))
+        extrapolation = torch.from_numpy(extrapolation.reshape(self.x_mod.shape), device=self.x_mod.device)
+
+        return extrapolation
 
 
 
@@ -163,7 +167,7 @@ def extrapolated_Langevin_dynamics(x_mod, scorenet, extrapolator_model, sigmas, 
         noise = torch.randn_like(x_mod)
         grad_norm = torch.norm(grad.view(grad.shape[0], -1), dim=-1).mean()
         noise_norm = torch.norm(noise.view(noise.shape[0], -1), dim=-1).mean()
-        x_mod = x_mod + step_size * grad + noise * np.sqrt(step_size * 2)
+        x_mod += step_size * grad + noise * np.sqrt(step_size * 2)
 
         image_norm = torch.norm(x_mod.view(x_mod.shape[0], -1), dim=-1).mean()
         snr = np.sqrt(step_size / 2.) * grad_norm / noise_norm
@@ -178,7 +182,7 @@ def extrapolated_Langevin_dynamics(x_mod, scorenet, extrapolator_model, sigmas, 
     if denoise:
         last_noise = (len(sigmas) - 1) * torch.ones(x_mod.shape[0], device=x_mod.device)
         last_noise = last_noise.long()
-        x_mod = x_mod + sigmas[-1] ** 2 * scorenet(x_mod, last_noise)
+        x_mod += sigmas[-1] ** 2 * scorenet(x_mod, last_noise)
         images.append(x_mod.to('cpu'))
 
     if final_only:
