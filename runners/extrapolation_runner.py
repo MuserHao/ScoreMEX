@@ -116,7 +116,7 @@ class EXTRunner():
                                      self.config.data.image_size, device=self.config.device)
                 samples = data_transform(self.config, samples)
 
-                all_samples = anneal_Langevin_dynamics(samples, score, sigmas,
+                all_samples =  extrapolated_Langevin_dynamics(samples, score, sigmas,
                                                        self.config.sampling.n_steps_each,
                                                        self.config.sampling.step_lr, verbose=False,
                                                        denoise=self.config.sampling.denoise)
