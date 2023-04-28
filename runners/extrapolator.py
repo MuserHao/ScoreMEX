@@ -28,7 +28,7 @@ class Extrapolator(ABC):
 
 
 class InterpolationExtrapolator:
-    def __init__(self, method, data, x_mod):
+    def __init__(self, method, data_shape, x_mod, sigmas):
         """
         Initialize an extrapolator object with an interpolation method, data, and x_mod.
         Parameters:
@@ -37,9 +37,8 @@ class InterpolationExtrapolator:
         data (array-like): The data points to use for interpolation.
         x_mod (array-like): The x-values to extrapolate to.
         """
+        super().__init__(data_shape, x_mod, sigmas)
         self.method = method
-        self.data = data
-        self.x_mod = x_mod
         self.x = None
         self.y = None
         
