@@ -19,7 +19,7 @@ class Extrapolator(ABC):
         pass
     
     @abstractmethod
-    def train_model(self):
+    def train(self):
         pass
     
     @abstractmethod
@@ -50,7 +50,7 @@ class InterpolationExtrapolator:
         self.x = self.data[:, 0]
         self.y = self.data[:, 1]
         
-    def train_model(self):
+    def train(self):
         """
         Train the interpolation model using the generated training data.
         Raises a ValueError if no training data has been generated.
@@ -125,7 +125,7 @@ class RegressionExtrapolator(Extrapolator):
             self.y += [score]
         self.y = np.array([torch.flatten(y).numpy() for y in self.y])
         
-    def train_model(self):
+    def train(self):
         """
         Train the regression model using the generated training data.
         Raises a ValueError if no training data has been generated.
@@ -134,7 +134,7 @@ class RegressionExtrapolator(Extrapolator):
             raise ValueError("Training data not generated")
         self.model.fit(self.x.reshape(-1, 1), self.y)
         
-    def make_extrapolation(self, x_pred):
+    def make_extrapolation(self, x_pred=0):
         """
         Use the trained regression model to make a prediction for the given x values.
 
@@ -153,12 +153,14 @@ class RegressionExtrapolator(Extrapolator):
 
 # still need to modify this
 @torch.no_grad()
-def extrapolated_Langevin_dynamics(x_mod, scorenet, extrapolator, sigmas, n_steps=200, step_size=0.000008,
+def extrapolated_Langevin_dynamics(x_mod, scorenet, extrapolator_model, sigmas, n_steps=200, step_size=0.000008,
                              final_only=False, verbose=False, denoise=True):
     images = []
-        for s in range(n_steps):
-        grad = scorenet(x_mod, labels)
-
+    for s in range(n_steps):
+        extrapolator = RegressionExtrapolator(extrapolator_model, x_mod.shape, x_mod, sigmas)
+        extrapolator.generate_data(scorenet)
+        extrapolator. train()
+        grad = extrapolator.make_extrapolation()
         noise = torch.randn_like(x_mod)
         grad_norm = torch.norm(grad.view(grad.shape[0], -1), dim=-1).mean()
         noise_norm = torch.norm(noise.view(noise.shape[0], -1), dim=-1).mean()
