@@ -13,7 +13,7 @@ from models import (anneal_Langevin_dynamics,
                     anneal_Langevin_dynamics_inpainting,
                     anneal_Langevin_dynamics_interpolation)
 from utils import *
-from extrapolator import Extrapolator, extrapolated_Langevin_dynamics
+from extrapolator import extrapolated_Langevin_dynamics
 
 __all__ = ['EXTRunner']
 
