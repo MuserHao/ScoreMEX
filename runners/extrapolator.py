@@ -38,12 +38,12 @@ class Extrapolator(ABC):
 class InterpolationExtrapolator:
     def __init__(self, method, data_shape, x_mod, sigmas):
         """
-        Initialize an extrapolator object with an interpolation method, data, and x_mod.
+        Initialize an extrapolator object with an interpolation method, data_shape, and x_mod.
         Parameters:
         method (str): The name of the interpolation method to use.
                       One of "linear", "quadratic", "cubic", or "spline".
-        data (array-like): The data points to use for interpolation.
-        x_mod (array-like): The x-values to extrapolate to.
+        data_shape (list or tuple): The shape of the data points.
+        x_mod (torch tensor): The x-values to extrapolate to.
         """
         super().__init__(data_shape, x_mod, sigmas)
         self.method = method
