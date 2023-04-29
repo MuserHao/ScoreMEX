@@ -35,18 +35,17 @@ class Extrapolator(ABC):
         pass
 
 
-class InterpolationExtrapolator:
-    def __init__(self, method, data_shape, x_mod, sigmas):
+class BasicExtrapolator(Extrapolator):
+    def __init__(self, data_shape, x_mod, sigmas, degree=1):
         """
-        Initialize an extrapolator object with an interpolation method, data_shape, and x_mod.
+        Initialize a basic extrapolator object with for linear and polynomial interpolation by data_shape, x_mod and degree.
         Parameters:
-        method (str): The name of the interpolation method to use.
-                      One of "linear", "quadratic", "cubic", or "spline".
         data_shape (list or tuple): The shape of the data points.
         x_mod (torch tensor): The x-values to extrapolate to.
+        degree (int): the degree of polynomial interpolation to use.
         """
         super().__init__(data_shape, x_mod, sigmas)
-        self.method = method
+        self.degree = degree
         self.x = None
         self.y = None
         
@@ -54,8 +53,15 @@ class InterpolationExtrapolator:
         """
         Generate training data from the specified data points.
         """
-        self.x = self.data[:, 0]
-        self.y = self.data[:, 1]
+        self.x = np.array([torch.flatten(x).numpy() for x in self.sigmas])
+        self.y = []
+        sigma_min = self.sigmas[-1]
+        for labels, sigma in zip(self.labels, self.sigmas):
+            score = scorenet(self.x_mod, labels)
+            # might need to standardize score to fit the model better?
+            score *= (sigma / sigma_min) ** 2      # scaling by sigmas squares
+            self.y += [score]
+        self.y = np.array([torch.flatten(y).numpy() for y in self.y])
         
     def train(self):
         """
@@ -64,14 +70,10 @@ class InterpolationExtrapolator:
         """
         if self.x is None or self.y is None:
             raise ValueError("Training data not generated")
-        if self.method == "linear":
+        if self.degree == 1:
             self.model = make_pipeline(LinearRegression())
-        elif self.method == "quadratic":
-            self.model = make_pipeline(PolynomialFeatures(degree=2), LinearRegression())
-        elif self.method == "cubic":
-            self.model = make_pipeline(PolynomialFeatures(degree=3), LinearRegression())
-        elif self.method == "spline":
-            self.model = CubicSpline(self.x, self.y, bc_type="natural")
+        else:
+            self.model = make_pipeline(PolynomialFeatures(degree=self.degree), LinearRegression())
         self.model.fit(self.x.reshape(-1, 1), self.y)
         
     def make_extrapolation(self, x_pred):
@@ -83,10 +85,10 @@ class InterpolationExtrapolator:
         """
         if self.x is None or self.y is None:
             raise ValueError("Training data not generated")
-        if self.method == "spline":
-            return self.model(self.x_mod)
-        else:
-            return self.model.predict(self.x_mod.reshape(-1, 1))
+        extrapolation = self.model.predict(x_pred.reshape(-1, 1))
+        extrapolation = torch.from_numpy(extrapolation.reshape(self.x_mod.shape), device=self.x_mod.device)
+
+        return extrapolation
         
         
 class RegressionExtrapolator(Extrapolator):
